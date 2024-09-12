@@ -1,0 +1,137 @@
+### Synopsis on Golang
+#---------------------------------------------------------
+
+## Basics, Control Flow, Functions
+- Package - containers to logically decompose code
+    - mandatory package is `main`, with function `main()`
+    - standard packages
+        Go has extensive library of standard packages, coming within distribution
+    - import package
+        import to use functions from package
+    - external packages (from github, etc.)
+
+- Module - correspond to application and executable to be built
+    - module underneath uses a set of packages
+    - initialize module with `go mod init`
+
+
+- Basic CLI commands
+    - `go mod init <module_name>`
+        convention for module name is like: github.com/path/../path/module
+        if you want to publish module can use only path/../path/module
+        as a result we get go.mod file in the project. note we can rename module directly in go.mod
+    - `go build`
+        builds project, with outcome build of executable
+        resulting executable is native (for any OS platform), is self-contained and not requiring Go installed
+        resulting executable will have name of the module, e.g. for module path/../path/module - named 'module'
+    - `go run <file.go>`
+        execute without building executable, will require Go installed
+
+- Variable & Constant & Types
+    - `var myVar = 5.2`
+        declare and initialize 'myVar' variable
+            Note: with this declaration myVar type is inferred => float64
+
+
+    - `var myVar float64 = 5.2`
+        explicitly define variable type
+            Note: we can declare variable without initialization only this way, e.g. `var myVar float64`
+
+    - `myVar := 5.2`
+        type is always inferred with this way, we can not use explicit type declaration
+
+    - `const myConst = 2`
+        use 'const' similarly with 'var' to declare and init constants
+        Note: if type not declared, `myConst` gets type `untyped` and flexible to auto convert to compatible types (like in Java)
+
+    - Note: all variables/constants must be used, otherwise code will not run. Same apply for functions, and more.
+
+    - Note: Golang is strictly typed language - it can not automatically transfer between compatible types as in Java
+        we need to explicitly cast type using standard functions e.g. `float(myVarInt)` casts int to float64
+
+    - Golang types:
+        - int, int8, int16, int32, int64
+        - float32, float64
+        - uint, uint8, uint16, uint32, uint64, uintptr (keep pointer)
+        - string
+        - array
+        - slice
+        - map
+
+- Error
+    - use `error` type to return error
+    - use `errors.New("ERROR_NAME")`
+    - use `panic("Message string")` to exit with unrecoverable error
+        Note: panic() will return 2 app status code. If you want to control the return status code, use os.Exit(status_code)
+
+- Array & Slice
+    - `var myArr = [5]int`
+        declare array of int, size 5 (will be initialized with default int value 0)
+
+    - `myArr := [5]int{1, 2, 3}`
+        declare and initialize array of int size 5
+            Note: we could initialize array partially, the rest elements will get default values as above
+
+    - `myArr := [5]int{}`
+            create empty array of int size 5
+
+    - `var myInt = myArr[1]`
+    - `myArr[1] = 8`
+        get/set element of an array
+
+    - `mySlice := myArr[1:3]`
+        create slice of myArr from index 1 (inclusive) to index 3 (excluded)
+            Note: left / right boundary of slice expression can be omitted
+
+    - `myDynamicSlice := []int{1, 2, 3}`
+        create a slice of size 3 and capacity 3
+
+    - We can create slice over slice, with any nesting, and they all have same behaviour
+
+    - `len(mySlice)`
+    - `cap(mySlice)`
+        get length and capacity of mySlice
+            Note:
+            len() will return length of the "window" the slice represents
+            cap() will return size of available slots (up to the end of array) upon which the slice is standing. So a slice is extendable beyond it's right boundary up to the end of array
+
+    - `extendedSlice := append(myDynamicSlice, 100)``
+        add 100 to the tail of slice (extending it)
+        Note: be careful when using append() on slices, old slice variables will remain unchanged. Reassign old slice variables if you want them to get updated, e.g. `myDynamicSlice = append(myDynamicSlice, 100)`
+
+    - Slice is not using new memory -n not copying from original array, but it is a "window" in original array. Changing slice will change the array
+        - smth similar to Java:
+            `Integer[] arr = new Integer[] {1, 2, 3};
+            List list = Arrays.asList(arr);`
+
+    - extendedSlice[1:] - will remove the 0-th element of the slice
+
+    - `mergedSlices := append(myDynamicSlice1, myDynamicSlice2...)` - unpack elements of myDynamicSlice2 to return a sequence of elements
+
+    - `for index, value := range mySlice {}` - iterate through the slice
+
+- Maps
+
+    - map[string]string {"one" : "apple", "two": "windows"}
+        declare and initialize map string -> string
+    -
+
+
+
+- Questions
+    - Will `append(myDynamicSlice, 100)` allocate new memory and copy array to new memory? If yes, isn't is suboptimal?
+    - How can I do join / subtract / ... of arrays / slices in Go?
+    - Assume we have a dynamic slice `myDynamicSlice := []int{1, 2, 3}`, how can we remove the 0-th element from it? And would the address of the slide be changed (requiring change of variables)?
+
+
+
+
+
+- Misc
+    - use ` ` to fmt.Print multi-line strings
+    - func() can return many values e.g. `func() (float64, float64)` and `return val1, val2`
+    - Go has only one cycle operator `for`. To do `while` or infinite loop use for `{ }`. Also use operators `break`, `continue`
+    - we can use switch `{ case <condition>: .. case <condition> .. }` working as `if {} else if {} else`
+    - 'null' in Go is `nil`
+
+## Data Structure

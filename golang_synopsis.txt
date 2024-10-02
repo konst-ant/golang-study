@@ -58,6 +58,11 @@
         - slice
         - map
 
+    - Type alias:
+        type stringMap = map[string]string - declares 'stringMap' type that is an alias of map[string]string
+        bookmarks stringMap - declare variable using type alias, type alias can be used in all places where type can be used
+
+
 - Error
     - use `error` type to return error
     - use `errors.New("ERROR_NAME")`
@@ -112,9 +117,24 @@
 
 - Maps
 
-    - map[string]string {"one" : "apple", "two": "windows"}
+    - m := map[string]string {"one" : "apple", "two": "windows"}
         declare and initialize map string -> string
-    -
+    - m["one"]
+        get value from map by key
+    - m["one"] = "pineapple"
+        change map value by key, or add value if the key is not in the map
+    - delete(m, "one")
+        delete element from map by key. if key doesn't exist there will be no error
+    - for key, value := range m {
+    }
+        iterate through map
+    - len(m)
+        return length of the map.
+        Note: map has no capacity
+    - make(map[string]string, 3) - create map and allocate memory for 3 elements
+        If we wouldn't use make, adding new elements to the map will allocate memory during adding
+    - Note: getting non-existent key from the map will return default value of the map's value type
+
 
 
 
@@ -133,5 +153,7 @@
     - Go has only one cycle operator `for`. To do `while` or infinite loop use for `{ }`. Also use operators `break`, `continue`
     - we can use switch `{ case <condition>: .. case <condition> .. }` working as `if {} else if {} else`
     - 'null' in Go is `nil`
+    - Labels
+        label1: - declare label, which can be used as reference, e.g. break label1
 
 ## Data Structure

@@ -50,13 +50,21 @@
         we need to explicitly cast type using standard functions e.g. `float(myVarInt)` casts int to float64
 
     - Golang types:
-        - int, int8, int16, int32, int64
-        - float32, float64
-        - uint, uint8, uint16, uint32, uint64, uintptr (keep pointer)
-        - string
-        - array
-        - slice
-        - map
+        - Basic types
+            - int, int8, int16, int32, int64
+            - float32, float64
+            - uint, uint8, uint16, uint32, uint64, uintptr (keep pointer)
+            - string
+        - Aggregate types
+            - array
+            - struct
+        - Reference types
+            - slice
+            - map
+            - function
+            - channel
+        - Interface types
+            -
 
     - Type alias:
         type stringMap = map[string]string - declares 'stringMap' type that is an alias of map[string]string

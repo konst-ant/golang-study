@@ -7,8 +7,14 @@
     - standard packages
         Go has extensive library of standard packages, coming within distribution
     - import package
-        import to use functions from package
+        use import - to import functions from package
     - external packages (from github, etc.)
+    Note: packages can span many files, e.g. "main package" can be declared in two different files within project. So you will not need to import around same package files
+
+    Note: How to decompose code into packages? These are recommended strategies:
+        - by usage
+        - dy application domain
+        - by business task
 
 - Module - correspond to application and executable to be built
     - module underneath uses a set of packages
@@ -26,6 +32,7 @@
         resulting executable will have name of the module, e.g. for module path/../path/module - named 'module'
     - `go run <file.go>`
         execute without building executable, will require Go installed
+        Note: in more general case e.g. when package spans several files, we need to do `go run .` from project root rather than by file name
 
 - Variable & Constant & Types
     - `var myVar = 5.2`
@@ -63,11 +70,36 @@
             - map
             - function
             - channel
+            Note: reference type variables are passed by pointer (reference), hence can be changed directly in receiving function
         - Interface types
             -
+        - Pointers
+            `num := 10
+             numPointer := &num` - declaring pointer, which will be pointing to a variable num and thus be reference type
+             Note: use pointer to avoid copying if required, or if you want to mutate the variable
+
+             `var p &int` - declaring pointer variable
+
+             `func(num *int)` -declaring function, which receives a pointer
+             Note: for pointer variables you will see them like this *int (as in C), basically keeping the memory address. And we dereference pointer with (*numPointer) as well
+
+             `*num = *num * 2` - if num is a pointer, this is how we can set new value to the variable (say, inside function receiving a pointer)
+             Note: for array pointer operating with dereferenced pointer would look like this `(*arr)[index]`, however it's exempted to use just arr[index]
+             Note: dereferencing pointer to nil will make runtime error
+
+        - Rune
+            - Rune is not an independent data type, but syntactic sugar (equivalent int32) for reading out string Unicode symbols into letters (runes)
+
+            - `for _, ch := range str {
+                        fmt.Print(ch, string(ch))
+               }` - will split str into Runes, and print out Unicode code and representation of each symbol in string
+
+            - alternatively declare `[]rune(str)` - same build slice of runes from string, but with syntactic sugar
+
+            - To convert back slice of runes into string do `string(rune)`
 
     - Type alias:
-        type stringMap = map[string]string - declares 'stringMap' type that is an alias of map[string]string
+        `type stringMap = map[string]string` - declares 'stringMap' type that is an alias of map[string]string
         bookmarks stringMap - declare variable using type alias, type alias can be used in all places where type can be used
 
 
@@ -123,7 +155,7 @@
 
     - `for index, value := range mySlice {}` - iterate through the slice
 
-- Maps
+- Map
 
     - m := map[string]string {"one" : "apple", "two": "windows"}
         declare and initialize map string -> string
@@ -141,7 +173,64 @@
         Note: map has no capacity
     - make(map[string]string, 3) - create map and allocate memory for 3 elements
         If we wouldn't use make, adding new elements to the map will allocate memory during adding
+    - make([]int, 10) - create and allocate memory for slice (array underneath of ints)
     - Note: getting non-existent key from the map will return default value of the map's value type
+
+- Struct
+
+    - `type account struct {
+            login string
+            password string
+            url string
+       }` -  declare the struct type
+
+    - account1 := account{
+        "login",
+        "password",
+        "url",
+    } - create account variable (comma inside field declaration is everywhere mandatory)
+    Note: order of field declaration here is important
+    Note: we can use variables in place of literals here
+
+    - account2 := account{
+            login: "login",
+            password: "password",
+            url: "url",
+    } - create account variable with explicit binding
+    Note: with this notation we can partially initialize struct variable, the omitted fields getting default values. We can have uninitialized (empty) struct variable as well_
+    Note: we can print structures with fmt.Print(account2)
+
+- Struct methods
+
+    - `func (account) outputPassword(acc *account) {}` - declare method upon account structure
+        Note: methods are declared outside of structs (this gives some flexibility? Huh?)
+        Note: declare methods in same package and near with struct declaration
+
+    - `func (acc account) outputPassword() {}` - alternatively we can declare method binding with "instance declaration", acc variable is now the bound account instance
+        Note: for methods that need mutate object, we would need to do pointer declaration
+        `func (acc *account) generationPassword() {}`
+        Note: constructor method (function) is just a function, in which you create strict instance and return typically pointer (to avoid object copying)
+
+
+- OOP
+    - Go has now inheritance concept
+    - Composition
+        - `accountWithTimestamp {
+                createdAt time,
+                updatedAt time,
+                account // embedded field
+        }` - declare extended structure base on existing "account"
+
+        - `extendedAcc := &accountWithTimestamp {
+               createdAt: time.Now(),
+               updatedAt: time.Now(),
+               account: {
+                    url: "url",
+                    login: "login",
+                    password: "password",
+               }
+        }` - create variable of composition structure
+        Note: we can access embedded field by `extendedAcc.account.url` or equivalently by `extendedAcc.url`
 
 
 
@@ -163,5 +252,7 @@
     - 'null' in Go is `nil`
     - Labels
         label1: - declare label, which can be used as reference, e.g. break label1
+    - import math.rand.v2 - for random generator
+    - `time` - library to use time
 
 ## Data Structure

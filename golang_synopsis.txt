@@ -8,13 +8,23 @@
         Go has extensive library of standard packages, coming within distribution
     - import package
         use import - to import functions from package
+        
+        NOTE: to import from package within YOUR application use `module/package`
+        
+        NOTE: another convention of Go is: every capitalized lexeme is being exported, which every lower-cased is not
+        
     - external packages (from github, etc.)
-    Note: packages can span many files, e.g. "main package" can be declared in two different files within project. So you will not need to import around same package files
 
-    Note: How to decompose code into packages? These are recommended strategies:
+    NOTE: packages can span many files, e.g. "main package" can be declared in two different files in project /. So you will not need to do imports among them.
+
+    NOTE: Convention in Go is each package should exist in directory under package name (main package is in project /).
+
+    NOTE: How to decompose code into packages? These are recommended strategies:
         - by usage
         - dy application domain
         - by business task
+
+
 
 - Module - correspond to application and executable to be built
     - module underneath uses a set of packages
@@ -32,28 +42,34 @@
         resulting executable will have name of the module, e.g. for module path/../path/module - named 'module'
     - `go run <file.go>`
         execute without building executable, will require Go installed
-        Note: in more general case e.g. when package spans several files, we need to do `go run .` from project root rather than by file name
+        NOTE: in more general case e.g. when package spans several files, we need to do `go run .` from project root rather than by file name
+    - `go get github.com/fatih/color` - install Go package from github
+        After installation package and it's deps (including transients) will appear in go.mod, and file go.sum will be changed
+
+        NOTE: we should save into git go.mod, and then `go get` will restore all deps on new laptop
+    - `go mod tidy` - cleans-up go.mod file to keep used deps, remove unused deps, and sort deps as direct / indirect (transient)
+        NOTE: this is recommended to be run when you do any change of used deps in the project (and before committing changes)
 
 - Variable & Constant & Types
     - `var myVar = 5.2`
         declare and initialize 'myVar' variable
-            Note: with this declaration myVar type is inferred => float64
+            NOTE: with this declaration myVar type is inferred => float64
 
 
     - `var myVar float64 = 5.2`
         explicitly define variable type
-            Note: we can declare variable without initialization only this way, e.g. `var myVar float64`
+            NOTE: we can declare variable without initialization only this way, e.g. `var myVar float64`
 
     - `myVar := 5.2`
         type is always inferred with this way, we can not use explicit type declaration
 
     - `const myConst = 2`
         use 'const' similarly with 'var' to declare and init constants
-        Note: if type not declared, `myConst` gets type `untyped` and flexible to auto convert to compatible types (like in Java)
+        NOTE: if type not declared, `myConst` gets type `untyped` and flexible to auto convert to compatible types (like in Java)
 
-    - Note: all variables/constants must be used, otherwise code will not run. Same apply for functions, and more.
+    - NOTE: all variables/constants must be used, otherwise code will not run. Same apply for functions, and more.
 
-    - Note: Golang is strictly typed language - it can not automatically transfer between compatible types as in Java
+    - NOTE: Golang is strictly typed language - it can not automatically transfer between compatible types as in Java
         we need to explicitly cast type using standard functions e.g. `float(myVarInt)` casts int to float64
 
     - Golang types:
@@ -61,6 +77,7 @@
             - int, int8, int16, int32, int64
             - float32, float64
             - uint, uint8, uint16, uint32, uint64, uintptr (keep pointer)
+                NOTE: byte - syntactic alias to uint8
             - string
         - Aggregate types
             - array
@@ -70,22 +87,22 @@
             - map
             - function
             - channel
-            Note: reference type variables are passed by pointer (reference), hence can be changed directly in receiving function
+            NOTE: reference type variables are passed by pointer (reference), hence can be changed directly in receiving function
         - Interface types
             -
         - Pointers
             `num := 10
              numPointer := &num` - declaring pointer, which will be pointing to a variable num and thus be reference type
-             Note: use pointer to avoid copying if required, or if you want to mutate the variable
+             NOTE: use pointer to avoid copying if required, or if you want to mutate the variable
 
              `var p &int` - declaring pointer variable
 
              `func(num *int)` -declaring function, which receives a pointer
-             Note: for pointer variables you will see them like this *int (as in C), basically keeping the memory address. And we dereference pointer with (*numPointer) as well
+             NOTE: for pointer variables you will see them like this *int (as in C), basically keeping the memory address. And we dereference pointer with (*numPointer) as well
 
              `*num = *num * 2` - if num is a pointer, this is how we can set new value to the variable (say, inside function receiving a pointer)
-             Note: for array pointer operating with dereferenced pointer would look like this `(*arr)[index]`, however it's exempted to use just arr[index]
-             Note: dereferencing pointer to nil will make runtime error
+             NOTE: for array pointer operating with dereferenced pointer would look like this `(*arr)[index]`, however it's exempted to use just arr[index]
+             NOTE: dereferencing pointer to nil will make runtime error
 
         - Rune
             - Rune is not an independent data type, but syntactic sugar (equivalent int32) for reading out string Unicode symbols into letters (runes)
@@ -107,7 +124,13 @@
     - use `error` type to return error
     - use `errors.New("ERROR_NAME")`
     - use `panic("Message string")` to exit with unrecoverable error
-        Note: panic() will return 2 app status code. If you want to control the return status code, use os.Exit(status_code)
+        NOTE: panic() will return 2 app status code. If you want to control the return status code, use os.Exit(status_code)
+
+- Defer
+    - `defer file.Close()` - execute in the end of function stack frame. Handy way to avoid multiple call in different branches of the same action, like resource cleaning
+    NOTE: `defer fmt.println(1)
+           dever fmt.pringln(2)` - will print: 2\n1
+
 
 - Array & Slice
     - `var myArr = [5]int`
@@ -115,7 +138,7 @@
 
     - `myArr := [5]int{1, 2, 3}`
         declare and initialize array of int size 5
-            Note: we could initialize array partially, the rest elements will get default values as above
+            NOTE: we could initialize array partially, the rest elements will get default values as above
 
     - `myArr := [5]int{}`
             create empty array of int size 5
@@ -126,7 +149,7 @@
 
     - `mySlice := myArr[1:3]`
         create slice of myArr from index 1 (inclusive) to index 3 (excluded)
-            Note: left / right boundary of slice expression can be omitted
+            NOTE: left / right boundary of slice expression can be omitted
 
     - `myDynamicSlice := []int{1, 2, 3}`
         create a slice of size 3 and capacity 3
@@ -136,13 +159,13 @@
     - `len(mySlice)`
     - `cap(mySlice)`
         get length and capacity of mySlice
-            Note:
+            NOTE:
             len() will return length of the "window" the slice represents
             cap() will return size of available slots (up to the end of array) upon which the slice is standing. So a slice is extendable beyond it's right boundary up to the end of array
 
     - `extendedSlice := append(myDynamicSlice, 100)``
         add 100 to the tail of slice (extending it)
-        Note: be careful when using append() on slices, old slice variables will remain unchanged. Reassign old slice variables if you want them to get updated, e.g. `myDynamicSlice = append(myDynamicSlice, 100)`
+        NOTE: be careful when using append() on slices, old slice variables will remain unchanged. Reassign old slice variables if you want them to get updated, e.g. `myDynamicSlice = append(myDynamicSlice, 100)`
 
     - Slice is not using new memory -n not copying from original array, but it is a "window" in original array. Changing slice will change the array
         - smth similar to Java:
@@ -170,11 +193,11 @@
         iterate through map
     - len(m)
         return length of the map.
-        Note: map has no capacity
+        NOTE: map has no capacity
     - make(map[string]string, 3) - create map and allocate memory for 3 elements
         If we wouldn't use make, adding new elements to the map will allocate memory during adding
     - make([]int, 10) - create and allocate memory for slice (array underneath of ints)
-    - Note: getting non-existent key from the map will return default value of the map's value type
+    - NOTE: getting non-existent key from the map will return default value of the map's value type
 
 - Struct
 
@@ -189,27 +212,27 @@
         "password",
         "url",
     } - create account variable (comma inside field declaration is everywhere mandatory)
-    Note: order of field declaration here is important
-    Note: we can use variables in place of literals here
+    NOTE: order of field declaration here is important
+    NOTE: we can use variables in place of literals here
 
     - account2 := account{
             login: "login",
             password: "password",
             url: "url",
     } - create account variable with explicit binding
-    Note: with this notation we can partially initialize struct variable, the omitted fields getting default values. We can have uninitialized (empty) struct variable as well_
-    Note: we can print structures with fmt.Print(account2)
+    NOTE: with this notation we can partially initialize struct variable, the omitted fields getting default values. We can have uninitialized (empty) struct variable as well_
+    NOTE: we can print structures with fmt.Print(account2)
 
 - Struct methods
 
     - `func (account) outputPassword(acc *account) {}` - declare method upon account structure
-        Note: methods are declared outside of structs (this gives some flexibility? Huh?)
-        Note: declare methods in same package and near with struct declaration
+        NOTE: methods are declared outside of structs (this gives some flexibility? Huh?)
+        NOTE: declare methods in same package and near with struct declaration
 
     - `func (acc account) outputPassword() {}` - alternatively we can declare method binding with "instance declaration", acc variable is now the bound account instance
-        Note: for methods that need mutate object, we would need to do pointer declaration
+        NOTE: for methods that need mutate object, we would need to do pointer declaration
         `func (acc *account) generationPassword() {}`
-        Note: constructor method (function) is just a function, in which you create strict instance and return typically pointer (to avoid object copying)
+        NOTE: constructor method (function) is just a function, in which you create strict instance and return typically pointer (to avoid object copying)
 
 
 - OOP
@@ -230,7 +253,7 @@
                     password: "password",
                }
         }` - create variable of composition structure
-        Note: we can access embedded field by `extendedAcc.account.url` or equivalently by `extendedAcc.url`
+        NOTE: we can access embedded field by `extendedAcc.account.url` or equivalently by `extendedAcc.url`
 
 
 
@@ -253,6 +276,17 @@
     - Labels
         label1: - declare label, which can be used as reference, e.g. break label1
     - import math.rand.v2 - for random generator
-    - `time` - library to use time
+    - `time` - package to use time
+    - `os` - package for work with OS (create files, etc.)
+    - `json` - package for marshall/unmmarshall JSON
+
+    - Meta-Tags
+        `type Account struct {
+            login string `json:"login" xml:"test"` - this is meta-teg, kind of annotation which can be used e.g. for
+                                                     serialization/des of objects from JSON etc. Standard package reflect
+                                                     uses meta-tags.
+            password string
+        }
+        NOTE: to be able marshall/unmarshall fields of the struct need being public that is "Login" instead of "login"
 
 ## Data Structure

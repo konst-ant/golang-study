@@ -17,7 +17,7 @@
 
     NOTE: packages can span many files, e.g. "main package" can be declared in two different files in project /. So you will not need to do imports among them.
 
-    NOTE: Convention in Go is each package should exist in directory under package name (main package is in project /).
+    NOTE: Convention in Go is each package should exist in directory under package name (main package is in project /). However, again package may span through many files, names of which must not be same as package
 
     NOTE: How to decompose code into packages? These are recommended strategies:
         - by usage
@@ -142,6 +142,8 @@
 
     - `myArr := [5]int{}`
             create empty array of int size 5
+      `myArr := []int{}`
+            create just an empty array
 
     - `var myInt = myArr[1]`
     - `myArr[1] = 8`

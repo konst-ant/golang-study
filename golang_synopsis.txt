@@ -180,6 +180,9 @@
 
     - `for index, value := range mySlice {}` - iterate through the slice
 
+    - `slice = append(slice[:i], slice[i+1:]...)` - delete i-th element from slice (or array).
+        Note: like Java, deleting element in array will cause copying of memory for the tail length of array
+
 - Map
 
     - m := map[string]string {"one" : "apple", "two": "windows"}
@@ -208,6 +211,7 @@
             password string
             url string
        }` -  declare the struct type
+       Note: also see -OOP "Composition" below showing how to declare struct with embedded field
 
     - account1 := account{
         "login",
@@ -222,7 +226,7 @@
             password: "password",
             url: "url",
     } - create account variable with explicit binding
-    NOTE: with this notation we can partially initialize struct variable, the omitted fields getting default values. We can have uninitialized (empty) struct variable as well_
+    NOTE: with this notation we can partially initialize struct variable, the omitted fields getting default values. We can have uninitialized (empty) struct variable as well
     NOTE: we can print structures with fmt.Print(account2)
 
 - Struct methods

@@ -261,6 +261,51 @@
         }` - create variable of composition structure
         NOTE: we can access embedded field by `extendedAcc.account.url` or equivalently by `extendedAcc.url`
 
+    - Dependency injection
+        To do DI basically we can use composition struct, that will include our target struct and dependencies, that it needs in the form of interfaces
+
+        - `type VaultWithDb struct {
+            Vault
+            db files.JsonDb
+        }` - struct including target struct and it's dependency
+
+    - Interface
+        - `type Db interface {
+            Read() ([]byte, error)
+            Write([]byte)
+           }` - declaration of interface
+            NOTE: we don't need to "implement" the interface, because any struct having the methods of interface automatically are "implementing" this interface. So meaning interface defines the contract.
+
+        - `type Reader interface {
+            Read() ([]byte, error)
+           }
+
+            type Writer interface {
+                    Write([]byte)
+            }
+
+            type Db {
+                Reader
+                Writer
+            }
+        ` - declaration of embedded interface
+
+        - `func PrintError(value any) {
+                fmt.Println(value)
+           }` - this function can accept int, string, etc.
+           NOTE: any is equivalent to `interface{}`
+
+        - `func PrintError(value any) {
+                switch t:= value.(type) {
+                    case string:
+                        fmt.Println(t)
+                    case int:
+                        fmt.Println("Error code %d", t)
+                    default:
+                        fmt.Println("Unknown type")
+                }
+           }` - getting the type of `any` variable
+
 
 
 

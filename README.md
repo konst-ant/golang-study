@@ -1,1 +1,1 @@
-# go-study
+### Synopsis on Golang

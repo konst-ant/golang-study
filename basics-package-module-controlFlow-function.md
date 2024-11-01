@@ -1,0 +1,43 @@
+- Package - containers to logically decompose code
+  - mandatory package is `main`, with function `main()`
+  - standard packages
+    Go has extensive library of standard packages, coming within distribution
+  - import package
+    use import - to import functions from package
+
+    NOTE: to import from package within YOUR application use `module/package`
+
+    NOTE: another convention of Go is: every capitalized lexeme is being exported, which every lower-cased is not
+
+  - external packages (from github, etc.)
+
+    NOTE: packages can span many files, e.g. "main package" can be declared in two different files in project /. So you will not need to do imports among them.
+
+    NOTE: Convention in Go is each package should exist in directory under package name (main package is in project /). However, again package may span through many files, names of which must not be same as package
+
+    NOTE: How to decompose code into packages? These are recommended strategies:
+    - by usage
+    - dy application domain
+    - by business task
+
+- Module - correspond to application and executable to be built
+  - module underneath uses a set of packages
+  - initialize module with `go mod init`
+
+- Flow
+  - use ` ` to fmt.Print multi-line strings
+  - func() can return many values e.g. `func() (float64, float64)` and `return val1, val2`
+  - Go has only one cycle operator `for`. To do `while` or infinite loop use for `{ }`. Also use operators `break`, `continue`
+  - we can use switch `{ case <condition>: .. case <condition> .. }` working as `if {} else if {} else`
+  - `null` in Go is `nil`
+
+- Error
+    - use `error` type to return error
+    - use `errors.New("ERROR_NAME")`
+    - use `panic("Message string")` to exit with unrecoverable error
+      NOTE: panic() will return 2 app status code. If you want to control the return status code, use os.Exit(status_code)
+
+- Defer
+    - `defer file.Close()` - execute in the end of function stack frame. Handy way to avoid multiple call in different branches of the same action, like resource cleaning
+      NOTE: `defer fmt.println(1)
+      dever fmt.pringln(2)` - will print: 2\n1

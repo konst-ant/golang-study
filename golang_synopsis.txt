@@ -241,7 +241,53 @@
         NOTE: constructor method (function) is just a function, in which you create strict instance and return typically pointer (to avoid object copying)
 
 
-- OOP
+- Functions
+    - Function is a 1-st class passenger, can be used the same way as other types are used, e.g. `var strToFunc = map[string]func(string, int)int{
+        "1": createAccount,
+        "2": findAccount,
+        "3": deleteAccount,
+    }`
+    NOTE: function can be used as an argument in other function, e.g. `func (vault *VaultWithDb) FindAccounts(url string, checker func(Account, string)boolean)` - universal function which searches accounts applying given checker function
+
+    - `FindAccounts("search string", func(account Account, str String) boolean {
+      return strings.Contains(acc.Url, str)
+    })' - usage of anonymous function, e.g. passed into FindAccounts() function declare above
+    NOTE: `func() {
+        fmt.Println("Hi")
+    }()` - declare and call anonymous function
+
+    - `func promptData(prompt ...any) string {}` - declaration of function with argument of variable number
+    NOTE: parameter of variable number of arguments can be used as slice, all operations like `for` are applicable
+    NOTE: argument of variable number must be the last in function signature
+
+    - `promptData(menu...)` - how to use slice variable `var menu = []string{"one", "two", "three",}` in the place of argument of variable size
+    NOTE: same ... operator we can use to spread slice across function arguments
+
+    - Closure
+        NOTE: function may return the other function, e.g. as a pattern we could have a factory function: `func factory(a string) func(*account.VaultWithDb) {return findAccountByUrl}`
+
+        - Closure is a function with it's additional context independent for each function instance (in other words function that captures arguments from external visibility context)
+            `func menuCounter() func()  {
+                i :-= 0 // context that will remain within the closure
+                return func() {
+                    i++
+                    fmt.Println(i)
+                }
+            }` - declare the closure
+
+            `counter := menuCounter()
+            for  {
+                ...
+                counter() // will get incrementing counters 1,2,3,..
+            }` - use closure
+
+
+
+
+
+
+
+- OOP & Generic
     - Go has now inheritance concept
     - Composition
         - `accountWithTimestamp {
@@ -277,11 +323,11 @@
             NOTE: we don't need to "implement" the interface, because any struct having the methods of interface automatically are "implementing" this interface. So meaning interface defines the contract.
 
         - `type Reader interface {
-            Read() ([]byte, error)
+                Read() ([]byte, error)
            }
 
             type Writer interface {
-                    Write([]byte)
+                Write([]byte)
             }
 
             type Db {
@@ -293,7 +339,7 @@
         - `func PrintError(value any) {
                 fmt.Println(value)
            }` - this function can accept int, string, etc.
-           NOTE: any is equivalent to `interface{}`
+           NOTE: any is equivalent to `interface{}` - also known as empty interface
 
         - `func PrintError(value any) {
                 switch t:= value.(type) {
@@ -305,7 +351,24 @@
                         fmt.Println("Unknown type")
                 }
            }` - getting the type of `any` variable
+           NOTE: to extract specific type for `any` variable use expression e.g. `intValue, okFlag = value.(int)`. okFlag will denote successful or not conversion
+           NOTE: interfaces is also a type, so it's feasible to do `value.(my_interface)`
 
+    - Generics
+        - `func sum[T int | float32 | float64 | string, V int](a, b T) {
+            return a + b
+        }` - declaration of generic type T and generic type V (V is not used, just for demonstration)
+        NOTE: for string will be concatenation
+        NOTE: expression int | float32 | float64 | string is called union, we can't use interfaces in unions
+        NOTE: we can't use `a.(type)` with a variable of generic type, however we can workaround it so: `any(a).(type)`
+        NOTE: return type can not narrow down the declared generic type, e.g. in example above we can not return explicit string or explicit int
+        NOTE: we can use struct within generic declaration
+
+
+        - `type List[T any] struct {
+            elements []T
+        }` - declare struct of generic type
+        NOTE: generics are not permitted in method as it is in func, however this will work: `func(l *List[T]) addElement {}`
 
 
 

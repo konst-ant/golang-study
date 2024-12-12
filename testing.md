@@ -1,0 +1,9 @@
+- Unit testing (Built-in)
+  - package testing - is built-in unit testing package in Go
+  - `go test` - command to run tests
+  - Convention: test file name is <file>_test.go
+  - if <file>_test.go has `package <file>` - public and private functions will be available for testing (whitebox testing)
+  - if <file>_test.go has `package <file>_test` - only public functions will be available for testing (blackbox testing)
+  - convention for test name  TestFunctionName<Smth>(t *testing.T) - where t *testing.T is test context
+  - we're using `t.Error()` of `t.Errorf()` to report error, e.g. `t.Errorf("Expected %v, got %v", expected, got)`
+  - 

@@ -1,0 +1,210 @@
+### OCP 11: Oracle Certified Professional - Java SE 11 Developer
+	- 50 multichoice questions / 90 minutes
+	- Note: see for topics of exam: Google "OCP11 Java exam topics"  > https://education.oracle.com/java-se-11-developer/pexam_1Z0-819 > Review exam topics
+	- Categories of questions:
+		- Coding quests
+		- Java theoretic quests
+		- Command line commands quests
+		- General theoretic quests
+		
+	- Mock exams:
+		- Enthuware (12-15$) best simulator
+		
+	- Taking exam - Pearson Vue
+	
+	- Registering to exam
+		- create Oracle account (education.oracle.com/home) > registration > Schedule exam > Login to CertView > create CertView account (! use same email for both CertView and Oracle accounts, use EXACT name on ID) > in CertView - Manage Exam at Pearson Vue 
+			- Bottom line: you will only need Oracle account this days, the other not required - or created for you that I didnt' understand
+	- Checking exam result
+		- (education.oracle.com/home) > certification > login > Results
+		
+Java data types and Sting APIs
+-------------
+
+- 8 primitive data types in Java:
+	int 		32 bits
+	short		16
+	long		64
+	(*) float	32
+	double		64
+	char		16
+	byte		8
+	boolean 1bit, size not precisely defined (possibly 1 byte)
+		
+	- Note: float and double have limited amount of significant digits they can store (7 - float, 16 - double). So for PI - float will be able to store only with precition of 6 fractional digits, whilst double with 15 fractional digits
+	Also note, the larger the integer part, the less fractional precision you can store.
+	
+	- Use BigDecimal if you need to overcome this limitations
+	
+	- Note: you can assign integral values to float or double - value will be transferred in Scientific notation (mantissa and exponent).
+	It will never overflow even with very huge numbers, but loose precision when going beyond maxim representable in mantissa (integral values > 2^24 for float and > 2^53 for double). 
+
+	- char is only positive numbers; declared with ''; for Unicode using hexadecimal codes like '\u0634' 
+	
+	- literals in octal, binary and hexadecimal are written as corr-ly: 0..., 0b..., 0x...
+	
+	- all primitive types have the counterpart Wrapper classes
+	
+	- java automatically do Autoboxing and Unboxing between primitive and Wrapper types
+	
+	- widening and casting do not work between Wrapper classes 
+	
+- Widening, Narrowing, Overflow - we can cast smaller size primitive type to bigger one; we can cast bigger into smaller is value not exceeds the range; in other cases we get overflow result is unpredictable, including e.g. assign negative short value to char
+
+
+
+Operators and Math APIs
+-------------
+
+- Operators and Math APIs
+	- byte, short with arithmetic operators are promoted to int
+	- when operands are different type they are promoted to be longest type capable to hold all of them
+	- compound assignments (+= -= etc) widen or cast result to the assigned type (not promoting to the largest type)
+	
+- Variable rules and scope
+	- local variables must be explicitly initialized (partial initialization i.e. initialize on condition won't compile)
+	- if member has no access modifier - it's package private i.e. accessible only within class' package (or subpackage) but private outside (not accessible in subclass outside of package)
+	- protected is as above + accessible in any subclass
+	- local variable of same name as static or instance var will override it
+	
+	- Note: new variable declaration is using var variable = 5; type is inferred; variable must be initialized; for reference types too, but init with null like this var variable = (String) null; can only be used as local variable; type for var can't be changed
+	
+- Strings, Dates, and Times
+	- Note: String pool - java using SAME object for equal String LITERALS declaration; though this is not the case for constructors or other ways of string creation not from literal declaration, they will not be equal references v1 == v2 i.e. two different objects
+	
+	- java.date.format.DateTimeFormatter is used to format from java Date Time type. Note to use ISO predefined formatters matching the variable type in hand (otherwise getting UnsupportedTemporalTypeException)
+		
+		Custom date formatter example: LocalDateTime localDateTime = LocalDateTime.of(2022, 10, 31, 9, 45); var pattern = DateTimeFormatter.ofPattern("EEEE, LLLL dd, yyyy 'at' hh:mm"); localDateTime.format(pattern);
+	
+
+Java OO Approach
+-------------
+	
+- Java OO Approach
+	- Note: initializer block (in curly brackets within the class) is executed before call to constructor - contrary to this static initializer block stands has static keyword and can you only static fields/methods
+	
+	- Garbage collection phases: Mark, Delete, Compact (optionally compact remaining referenced objects)
+	
+	- Course: Understanding the Java Virtal Machine: Memory Management (Kevin Jones)
+	
+	- Note: Method signature is method name + parameter list (sequeence of types actually)
+	
+	- Just a reminder: primitive types are passed by value, whilst reference type - by reference
+	
+	- Just a reminder: the sub class can in relation to super class: access accessible fields/methods, create new fields/methods different on name, override accessible instance methods (also non-final), invoke constructor
+	
+	- Note: to call method from super class use super.method()
+	
+	- Polymorphism - ability of abstraction to take different forms (!) at runtime (you may even not need to recompile) - late binding
+		- example: several classes differently implement same method of interface, subclass overriding super class method
+		- reduces coupling - compared to inheritance, and lets use abstraction types to express a whole category of implementations
+	
+	
+	- Just a reminder: Abstract classes
+		- abstract methods of abstract classes are forced to be overridden in their concrete sub-classes
+		- also template design pattern is when you define a non-abstract method of abstract class using inside it abstract methods of this class
+		- abstract classes may have constructors, but they can't be instantiated
+		
+	- Interface can have: method signatures, default methods, static methods, nested types, constants (public). No constructors in interfaces
+		- interface methods are abstract and public by default, and it can't be made non-public in implementation
+		- Note: default methods serve as one way of keeping contract from break with implementation classes, when interface needs to be modified. Implementing classes may overwrite default though, or may not
+		- Note: static methods - just a way to handy keep utility method bound to interface (you wouldn't need a concrete class if utility method stick well to interface)
+		
+	- Functional interface - interface with a single (abstract) method. Use @FunctionalInterface
+		- can you lambda to implement functional interface - implementation on the spot
+		- Examples: Predicate<T>, Function<T>, Runnable, Callable, Comparable<T>
+	
+	- Enums - variable holding certain predefined values - fixed set of constants (actually objects of Enum class)
+		- enums are 1-st class passengers with fields, methods and constructors
+		- Note: compiler adds special methods values(), valueOf()
+		- enum may have fields assigned to each value 
+		- enum constructor must be private or package private - it is called automatically for defined values
+		- Note: constants in enums should be defined first
+		
+- Inner (Nested) class - class associated with a instance of the outer class
+	- Inner class has direct access to members of outer class
+	- Inner class may not contain any static members
+	- Instantiate Inner class: Instantiate Outer class object > Instantiate Inner class object, using new method of Outer object
+		Outer ou = new Outer(); Inner in = ou.new Inner();
+	- Inner class can even be public to be reused
+	
+- Local class - class defined within the block of code: in method, in for loop, in if clause, or block of code
+	- when defined inside member method of Outer class, Local class can access members of Outer class + local variables provided they are final or effectively final (means instantiated by fact only once)  + method parameters. Instantiate this class (only!) within the method and use it
+	- Local class can not contain any static members except constants
+	- Local class can not be interface
+	- Can not be instantiated outside of the block where it is declared
+	- Local class can not have access modifiers
+	
+- Anonymous class - like Local class, created using new <Interface | Base class> { <block for class definition> }. Same rules as for Local above apply to Anonymous class, plus you can not declare constructor in Anonymous class
+	- Note: Lambdas effectively are anonymous classes for Functional interfaces (interface with a single method)
+	- Course: Using Lambda expressions in Java code - by Jose Paumard
+	
+
+Exceptions handling
+-------------
+
+- Exception handling
+	- In catch blocks you have to respect Exception class hierarchy, i.e. catching more specific exceptions must precede catching more general ones	
+	- Multi-catch block is the one using syntax catch (Exception1 |Exception2 e)
+		- Exceptions in multi-catch block must be disjoint (can be in hierarchy relation)
+	- Just a reminder - finally block is guaranteed to always execute, no matter what (unless you call System.exit() somewhere haha)
+	- With a finally present catch blocks become optional
+
+- Try with resources: try (FileInputStream in = new FileInputStream("in.txt"); FileOutputStream out = new FileOutputStream("out.txt")) { <code> }
+	- you may have as many resources inside try as you need, separated by ; 
+	- java guarantees to close all opened resources before whole construct is completed (actually rewrites it into finally under the hood)
+	- Note: try with resources has catch{} and finally{} - optional if resource opening and <code> doesn't throw an exception - otherwise use catch block
+	- Note: local variable declaration (of resource) within try - is not available in catch
+	- Note: closing of resources is done in order reverse to opening
+	- Note: resource is any class implementing AutoClosable functional interface - having method void close() 
+	
+- Just a reminder: Throwable is the parent of exceptions hierarchy, having Exception and Error subclasses.
+- Exceptions categories in: Checked, Unchecked (Runtime is the base class)
+- Exceptions to memoize:
+	- RuntimeException(s)
+		- ArithmeticException (divide by 0)
+		- ArrayIndexOutOfBoundsException
+		- ClassCastException (casting to incompatible type)
+		- IllegalArgumentException (throw yourself to signal on bad argument type e.g. negative number where must be non-negative)
+		- IllegalStateException
+		- NPE
+		- NumberFormatException (e.g. trying to convert String into Integer)
+		- Note: the majority of above Exceptions directly spring from RuntimeException, but NumberFormatException > IllegalArgumentException > RuntimeException
+	- Checked Exception(s)
+		(java.io)
+		- IOException
+		- FileNotfoundException ^
+		
+		(java.nio)
+		- FileSystemException
+		- NoSuchFileException
+		- AccessDeniedException
+		
+	- Course: Java Fundamentals: NIO and NIO2
+	
+- Error - we should never catch, or try to recover
+- Error(s) to memoize:
+	- ExceptionInitializerError (if static class initializer fails - i.e. static variables initialization, static blocks etc)
+	- StackOverflowError
+	- NoClassDefFoundError (class missing at runtime, or couldn't be ClassLoaded)
+	- OutOfMemoryError
+	
+- Note: we usually don't care for declaring any RuntimeException(s) in method signatures
+- Note: Exceptions are covariant in Java, meaning in @Override method you can narrow down exception compared to type thrown in parent (overriden) method. Also you may skip throwing some exception declared by overriden method in @Override method.
+- Note: Remember that "throws" clause is not part of method signature
+
+-Exception handling Clean code principles:
+	- Never catch Throwable
+	- Prefer catching specific exceptions rather than general
+	- Don't swallow exceptions (no empty catch blocks)
+
+
+
+
+
+
+Streams and Lambda expressions
+-------------
+
+
+

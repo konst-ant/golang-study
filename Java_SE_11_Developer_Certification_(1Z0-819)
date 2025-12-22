@@ -457,6 +457,54 @@ Java Concurrency
 
 	- ConcurrentMap, ConcurrentHashMap, ConcurrentSkipListMap, ConcurrentNavigableMap
 
+	- One interesting class for implementing running tasks in parallel taking first available result - ExecutorCompletionService
+		- so submitting tasks into ExecutorCompletionService will make it put resulting Future into blocking queue ONLY when task completed; you can poll() the queue thus getting first ready result (or all in order of completion). Here an examplery snippet. 
+
+		- Note: Future returned from poll() has hard guarantee of non blocking on get(), as result already there
+
+		ExecutorService pool = Executors.newFixedThreadPool(10);
+		ExecutorCompletionService<Flight> ecs =
+				new ExecutorCompletionService<>(pool);
+
+		List<Future<Flight>> futures = new ArrayList<>();
+
+		try {
+			for (TravelAgency agency : agencies) {
+				futures.add(
+					ecs.submit(() -> agency.search(user, location))
+				);
+			}
+
+			Flight result = null;
+
+			for (int i = 0; i < agencies.size(); i++) {
+				Future<Flight> f = ecs.poll(5, TimeUnit.SECONDS);
+				if (f == null) {
+					break; // timeout
+				}
+				try {
+					result = f.get(); // success
+					break;
+				} catch (ExecutionException e) {
+					// failed task → ignore and continue
+				}
+			}
+
+			if (result == null) {
+				throw new TimeoutException("No successful flight found");
+			}
+
+			return result;
+
+		} finally {
+			// 🔥 Cancel everything else
+			futures.forEach(f -> f.cancel(true));
+
+			// 🔥 Interrupt running threads
+			pool.shutdownNow();
+		}
+
+
 
 
 Secure coding practices with Java
@@ -576,4 +624,4 @@ Localization in Java
 - Bi-directional text - e.g. languages Arabic, Persian, Yiddish
 	- directionalify (left-to-right, right-to-left)
 		- is about direction of text reading, as well as alignment - note LTR > RTL alignment mirrors (except number and untranslated text)
-		
+

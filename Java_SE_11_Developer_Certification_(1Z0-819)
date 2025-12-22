@@ -205,6 +205,375 @@ Exceptions handling
 
 Streams and Lambda expressions
 -------------
+- Lambda expression - is anonymous method, also passing code as data. They facilitate functional programming in Java
+	- Lambdas exploit (implement) Functional interfaces - IF with a single abstract method
+	- Examples of functional interfaces: 
+	interface Comparator<T> {
+		int compare(T o1, T o2); // Note: to compare ascending you need to o1.compare(o2) - so arguments of expression stand in natural order
+	}
+	interface Runnable {
+		void run(;)
+	}
+	interface Callable<V> {
+		V call() throws Exception;
+	}
+	interface FileFilter {
+		boolean accept(File f); // filtering files from directory listing
+	}
+	- Note: look into java.util.function - for Java functional interfaces
+
+	- In lambda only final or effectively final variables can be captured (used). 
+		- This is because in lambda captured variables are not used directly, but a copy of this variable is created. Actually the requirement of effectively final variable and copying variable inside lambda is due to lambda can be executing in a different thread, thus for the closure of captured variable during the time of lambda execution variable may be non existent.
+	- Captured variable can not be modified in lambda. If you need to modification inside lambda use object container (modify internal state of object, not the variable itself) - Though avoid this (!)
+		- Be careful with modify operation inside lambda, as it may have side effects e.g. lambda used in parallelStream()
+
+	- keyword "this" in lambda - has meaning of "this" in surrounding code. Same is for the keyword "super"
+
+	- consider followig example of Exception handling with lambda. Here writer.write() throws IOException, that is why we need to explicitly catch this checked exception in lambda, cuz the forEach method taking Consumer functional interface, which does not throw any checked exception. Then we rethrow this one to catch outside. Conclusion: handling exceptions within lambda is cumbersome > consider to fall back to use plain for loop w/o lambda in this case
+
+		try(FileWriter writer = new FilWriter("products.txt")) {
+			products.forEach(product -> {
+				try {
+					writer.write(product.toString() + "\n");
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			})
+		} catch (IOException | RuntimeException e) {
+			System.err.println("An exception occured: " + e.getMessage());
+		}
+
+	- Remember we can use method reference to point to a method instead of writing lambda. The signature of method reference must match the signature of functional interface's method where we use it. Method reference can refer to: instance method (2 types of method reference: by instance name; by class name for multiple operations like Stream.map() or Optional.map() - see below), static method, or a constructor.
+		- Example of instance method reference: calling on each instance of product instance method getName(), then calling the instance method of System.out object
+			products.stream().map(Product::getName).forEach(System.out::println);
+		- Example of constructor method reference:
+			interface ProductFactory {
+				Product create(Category category, String name, BigDecimal price);
+			}
+
+			ProductFactory factory = Product::new // here we reference to a constructor Produc(Category category, String name, BigDecimal price)
+			Product blueberries = factory.create(Category.FOO, "Blueberries", new BigDecimal("6.95"));
+	
+	
+- Functional interface - an interface with a single abstract method (it may have static and default methods or inherited methods as well - but exactly 1 abstract method of iterface is required)
+
+	- Note the use of @FunctionalInterface annotation
+
+	- java.util.function functional interfaces:
+		- interface Function<T, R> {
+			R apply(T value);
+		}
+		- interface Consumer<T> {
+			void consume(T value);
+		}
+		- interface Supplier<T> {
+			T get();
+		}
+		- interface Predicate<T> {
+			boolean test(T value);
+		}
+		- intrerface UnaryOperator<T> {
+			T apply(T value); // function returning same type as input type
+		}
+		- interface BiFunction<T, U, R> {
+			R apply(T v1, U v2);
+		}
+		- interface BiConsumer<T, U> {
+			void consume(T v1, U v2);
+		}
+		// Note: no BiSupplier possible cuz Supplier takes no arguments and produces value - but it can't produce two values
+		- interface BiPredicate<T, U> {
+			boolean test(T v1, U v2);
+		}
+		- interface BinaryOperator<T> {
+			T apply(T v1, T v2);
+		}
+
+	- Note: functional interfaces have many default and static methods for functional composition e.g. in Function:
+		default <V> Function<T, V> andThen(Function<? super R, ? extend V> after); // after main abstract T > R, andThen R > V
+
+		default <V> Function<V, R> compose(Function<? super V, ? extend T> before);
+
+		- Note: here application of PECS rule > in Java generics declaration Producer Extends, Consumer Super
+
+
+	- Specialized Functional interfaces - were created to facilitate lambda with primitive types without unnecessary and inefficient Boxing-Unboxing of primitive types into reference types, when it is not required and we can work with primitive values directly
+
+		- interface IntBinaryOperator<T> {
+			int applyAsInt(int v1, int v2);
+		}
+
+		- Note: specialized primitive type Functional interfaces exist only for this primitive types: int, long, double. The common interface name pattern: PrefixToSuffixInterface e.g. 
+		- interface IntFunction<R> {
+			R apply(int value);
+		}
+		- interface LongToDoubleFunction {
+			double apply(long value);
+		}
+		- interface ObjIntConsumer<T> {
+			void consume(Object v1, int v2);
+		}
+		- interface BooleanSupplier {
+			boolean getAsBoolean();
+		}
+
+	- Note: for special Functional interfaces there exist special streams: IntStream, LongStream, DoubleStream working directly with primitives, without boxing
+		- Example: use DoubleStream for efficiency; mapToDouble() produces a DoubleStream
+		DoubleStream prices = products().stream().mapToDouble(productn -> product.getPrice().doubleValue());
+		double total = prices.sum();
+		DoubleSummaryStatistics statistics = prices.summaryStatistics();
+		statistics.getAverage(), .. getMin(), .. etc
+	
+- Java 8 Streams
+	- package java.util.stream
+	- stream operations split into: intermidiate & terminal
+	- streams are lazy, no action will happen unless the terminal operation is present - as opposed to Collections which are eager
+
+	- Note: stream programming is declarative, iteration is internal (not controlled by the code) as opposed to external iteration w/ Collections
+	- Note: streams as functional programming don't modify it's source, but produce immutable elements at each step
+	- Note: streams don't store elements, they only get them from source
+
+	- Obtaining streams
+		- Arrays.stream(array);
+		- Stream.of("one", "two");
+		- Stream.ofNullable("one"); // takes a single element and returns empty stream if argument is null
+		- Stream.empty()
+		- IntStream dice = new java.util.Random().ints(1, 7); // randoms from 1 to 6
+		- try(BufferedReader in = new BufferedReader(new FileReader("file", StandardCharsets.UTF_8))) {
+			in.lines().forEach(System.out::println); // returning a stream here
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		- Stream.generate() - takes Supplier, generates an infinite stream
+			- Stream<UUID> uuids = Stream.generate(UUID::randomUUID);
+			  uuids.limit(10).forEach(System.out::println)
+		- Stream.iterate(seed, UnaryOperator)
+			- Stream.iterate(BitInteger.ONE, n -> n.multiply(BitInteger.TWO)); // power of 2 elements
+			- Stream.iterate('A', letter -> letter <= 'Z', letter -> (char) (letter + 1)); // letters of alphabet
+		- Stream builder = Stream.builder();
+		  builder.add("one");
+		  builder.add("two");
+		  builder.add("three");
+
+	
+	- some operations on the stream: filter(), findFirst(), findAny(), anyMatch(), allMatch(), noneMatch()
+		- Note: findFirst() and findAny(), anyMatch() - are examples of short-curcuiting operations, they will stop when 1-st element found
+
+	
+	- Reduction & Collection / Grouping & Partitioning
+		- collect() - accepts a Collector
+			- use Collectors.* factory methods to build common collectors
+		- reduce((result, element) -> result.add(element)) // reduction on a stream of BigDecimal elements
+		- reduce(BigDecimal::add) - same as above
+		- Note: above produces Optional<>
+
+		- reduce(BigDecimal.ZERO, BigDecimal::add) - same as above, with initial value
+		- reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner); - here T is type elements of original stream; identity is initial result value; accumulator is reducer; combiner used to join independent results produced by separate streams with parallel processing.
+			- Note: reduce() is designed for immutable reduction
+
+		- Collectors.collect(): <R> R collect(Supplier<R>, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) - supplier is the one producing container of the result; accumulator is function accumulating stream elements into container; combiner is function knowing how to merge 2 intermediate result containers into one
+			- Note: collect() is designed for mutable reduction (as it is BiConsumer - so it takes next element and result and updates the result - not returning new value); same is for combiner function - it is BiConsumer, so effectively taking 1-st R argument and "adding" elements into it from 2-nd R
+
+		- Collectors.toMap(): Collector<T, ?, Map<K, U>> toMap(Function(? super T, ? extends K) keyMapper, Function<? super T, ? extends U> valueMapper, BinaryOperator<U> mergeFunction)
+			- Note: keyMapper is a function to extract key from stream elements; valueMapper is a function to extract value from stream elements; mergeFunction - is how you do merging of values with the same key to get ultimate result to store in map under given 
+			key. Example:
+				Map<Category, BigDecimal> totalPerCategory = products().stream().collect(Collectors.toMap(Product::key, Product::value, BigDecimal::add));
+
+				- Note: same as above can be done using grouping (see below):
+				Map<Category, BigDecimal> totalPerCategory = products().stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.mapping(Product::getPrice, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)))
+
+		- Collectors.groupingBy examples:
+			Note: groupingBy collectors always divides original stream into number of streams using a classifier function
+			- List<Product> productByCategory = products().stream().collect(Collectors.groupingBy(Product::getCategory));
+			
+			- Map<Category, List<String>> productNamesByCategory = products().stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.mapping(Product::getName, Collectors::toList()))); 
+			Here we're using cascading groupingBy collector method, grouping element by classification function 1-st argument, and then performing reduction operation on the values associated with each key using specified downstream Collector.
+
+		- Other Collectors. : mapping(), reducing() 
+
+		- Collectors.partitioningBy: partitioning is a special case of grouping. Here we partition into cheap and expensive (true and false) partitions:
+			BigDecimal priceLimit = new BigDecimal("5.05");
+			Map<Boolean, List<Product>> partitionedProducts = products().stream().collect(Collectors.partitioningBy(product -> product.getPrice().compareTo(priceLimit) < 0));
+			- Note: partitioningBy is fundamentally binary, it always produces Map<Boolean, ...>
+			- Note: here elements are split into 2 Streams, which are being collected. You can specify a downstream collector as in groupingBy, which will be collecting this streams. If no downstream collector specified, streams will be collected with toList() collector
+
+	- Parallel streams
+		- use parallelStream() instead of stream()
+		- for grouping use Collectors.groupingByConcurrent() - note this collector is not preserving or guaranteeing the order of elements as they come from stream
+
+
+Java Concurrency
+-------------
+
+- java.util.concurrent - Java package of multi-threading
+
+- Threads
+	- Create thread:
+		- Thread thread = new Thread(() System.out.println("Hi"));
+		thread.start()
+		- extend Thread class, rewrite run()
+	- Callable<V> {
+		V call() throws Exception;
+	} 
+
+	- Thread.sleep() throws InterruptedException
+		- thread can be interrupted with exception
+	- Thread.interrupt()
+		- interrupt thread directly
+	- Thread.join() - waiting for another thread to complete
+
+	- synchronized on instance method - without explict monitor synchronize on present object
+		- Note: if you wanna exlusiveness regardless of put synchronized on static method - synchronizing on a class
+
+	- ExecutorService - interface
+		- void execute(Runnable)
+		- Future<?> execute(Runnable)
+		- Future<T> submit(Callable<T>)
+		- T invokeAny(Collection<? extends Callable<T>>)
+		- List<Future<T>> invokeAll(? extends Callable<T>)
+
+		- implementations: 
+			- SingleThreadExecutor
+			- ThreadPoolExecutor (used in Executors.newFixedThreadPool, Executors.newCachedThreadPool, Executors.newSingleThreadExecutortor) 
+			- ScheduledThreadPoolExecutor 
+			- ForkJoinPool
+
+	- Future - interface
+		- isDone()
+		- isCancelled()
+		- cancel()
+		- get() // and with timeout
+
+	- ThreadPoolExecutor and it's main constructor:
+		public ThreadPoolExecutor(
+			int corePoolSize,
+			int maximumPoolSize,
+			long keepAliveTime,
+			TimeUnit unit,
+			BlockingQueue<Runnable> workQueue,
+			ThreadFactory threadFactory,
+			RejectedExecutionHandler handler
+		)
+
+	- ConcurrentMap, ConcurrentHashMap, ConcurrentSkipListMap, ConcurrentNavigableMap
 
 
 
+Secure coding practices with Java
+-------------
+
+
+Note: courses on Pluralsight: 1) Securing Java Web Applications 2) Spring Security 3) Securing Java Application Data
+
+- Basic principle: don't secure what is not being published. Meaning most conservatively you fully close smth and don't care for ensuring security of this e.g. private field w/o getter.
+
+- Guidelines
+	- Keep your code simple! KISS - Keep It Simple Stupid
+		- C.A.R. Hoare once famously quipped: There are two ways of constructing software design: one is to make it so simple that there are obviously no deficiencies, and the other way is to make it so complicated that thare are no obvious deficiencies
+	- Avoid duplication (Single responsibility)
+	- Minimize permission checks
+	- Document security
+	- Secure 3-rd party code
+
+	- use acess modifiers, setters - i.e. incapsulation
+	- search for invariants
+	- enforce checks in the constructor
+	- prefer to check for ALLOWED rather than NOTE ALLOWED
+
+	- Immutability
+		- consider using final on class (or more narrowly on method) - to protect method overriding e.g.
+		- make constructor private in favor of static factory methods
+		- consider final on fields (also makes code thread-safe)
+		- if you need to do immutable a object (container) - copy it in constructor and don't set object field to a passed parameter in constructor
+			- Note: also for getters of immutable object - don't return the object itself, but rather a derivative of it e.g. a copy of object, an iterator if it's a Collection or so - return Collections.umbodifiableList(this.field)
+		
+		- Note: don't use Cloneable - it's way too banned pattern; it bypasses constructor (no invariants secured) apart from all other evils. (also remember Cloneable creates shallow objects by default)
+			- use copy constructors if you need Cloneable - instead
+
+		- Note: be careful with Serializable as well, cuz serialized object may be actually hacked to change values - again bypassing invariants ensurance code
+			- be careful deserializing untrusted payloads
+			- override readResolve() method to enforce checking - call constructor and return it's result
+			- to opt out serialization in Serializable class - override readObject() and writeObject() to throw NoSerializableException
+			- you can also fine grain wchich classes can use serializaction -  ObjectInputFilter.Config.setSerialFilter()
+
+		
+	- Passwords & Sensitive data
+		- passwords are usually hashed to the same length, using some kind of hashing algo like Argon2(best), bcrypt
+			- Note passwords must always be used with hashing only - not encrypt/decrypt, so one way hashing only!
+			- Note: modern password hashing standards alwasy include salt > to prevent same passwords have same hashes > to avoid hackers use rainbow tables (tables with precomputerst password - hash values), which can be reused across many companies
+
+		- Sensitive data categorization (shouldn't be logged ever - is you still need to log, hash this info):
+			- PII (Persanally Identifiable Information), PCI (Payment Card Information), PFI (Personal Financial Information), PHI (Protected Health Information)
+			- passwords, tokens, session IDs
+
+		- Note: sensitive info can exist in memory within variables and objects - there is some risk of making thread dump will leak this information out
+			- if some sensitive info still need to reside in memory, it should be hashed, encrypted or indirectly referenced
+
+		- Avoid to show Exception fully or partially to user e.g. in UI.
+			- replace untrusted exception messages (from libs)
+
+		- To not serialize sensitive fiedls use "transient"
+			- otherwise use ObjectStreamField[] array to point which fields to serialize (blocklists)
+
+		- Protect from SQL injection attacks by usin PreparedStatement and using bind variables (! bind vars are critical)
+
+		- Inclusion is attack of including references to malicious files or endpoints or resources
+			- Don't load resources that you don't need or not recognize
+			- Load only local files from known paths | check through allow list
+			- Load remote files only over HTTPS 
+
+		- Defending from DDOS
+			- Define and enforce limits when processing resources (ZIP bombs, XML bombs - uncompressing melts down memory)
+				- Note: recipe always use small buffers to read/transfer data - not reading it full into memory
+				- Note: apply limits on max size of data (when uncompressing count how much have you read)
+				- use library Apache POI ZipArchiveThresholdInputStream
+			- Protect against overflow
+			- Keep cleaning-up resources for GC - remove references and close opened resources (same as to avoid memory leaks)
+			- Limit internal resources
+				- Limit Cache sizes, longevity, eviction strategy
+				- Note: example of attack on cache - making HashMap to save all values with the same key - slowdown cache lookup
+				
+		- SecurityManager - is to lock down risky permissions at JVM level e.g. opening resources, using class loader, reflection
+			- Note: by default SecurityManager is off; when off it will be using default policy file
+			- it has policy files specification as configuration (working as allow list)
+				- policies can be applied to JVM modules
+			- to enable SecurityManager -Djava.security.manager -Djava.security.policy=my.policy
+
+
+
+Localization in Java
+-------------
+
+- Locale - represents specific region
+	- this implements semantics of language tags 
+	- Fields of Locale:
+		- language ISO 639 alpha 2/3 language code e.g. "en"
+		- script ISO 15924 alpha 4 script code e.g. "Latn"
+		- country ISO 3166 alpha 2 country code e.g. "US"
+		- variant e.g. "Win"
+		- extensions key-value mappings, e.g. "u" > "ca-japanese" (Japanese calendar)
+
+		- use displayLocaleAttributes() to see fields
+		
+	- methods of Locale: getXXX(), getDisplayXXX(), getISOXXX(), get ISO3XXX()
+	- Locale defines constants like Country, Language as instances of Locale
+
+	- Locale implements Serializable - writeObject() readObject() readResolve()
+
+	- Note: Locale also has Locale.Builder - builder validates value for passed variables - IlllformedLocaleException
+
+	- You can get default locale via: Locale.getDevault() - depending on your location
+
+- ResourceBundle class
+	- store key-value pairs which are shared for different locales, and specific attributes of target local on top
+	- when needed locale-specific object, you can load ResourceBundle by ResourceBundle.getBundle(<base_name of ResourceBundles>, <current_locale>)
+	- ResourceBundle is backed by properties file
+	- when localizing, need to create locale specific .properties overriding default properties e.g. TextBundle.properties (default), TextBundle_fr.properties, etc. 
+		- the keys remain the same across all .properties files
+	
+- Note: locales and bundles supported in Oracle Application Development Framework (ADF) - Faces components
+
+- Bi-directional text - e.g. languages Arabic, Persian, Yiddish
+	- directionalify (left-to-right, right-to-left)
+		- is about direction of text reading, as well as alignment - note LTR > RTL alignment mirrors (except number and untranslated text)
+		
